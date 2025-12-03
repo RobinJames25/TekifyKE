@@ -1,0 +1,25 @@
+{
+  "name": "tekifyke",
+  "version": "1.0.0",
+  "description": "TekifyKE - Electronics E-commerce Platform",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -n \"Backend,Frontend\" -c \"blue,green\" \"pnpm run dev:backend\" \"pnpm run dev:frontend\"",
+    "dev:backend": "cd Backend && pnpm run dev",
+    "dev:frontend": "cd Frontend && pnpm run dev",
+    "install:all": "pnpm install && cd Backend && pnpm install && cd ../Frontend && pnpm install",
+    "prisma:migrate": "cd Backend && pnpm prisma migrate dev",
+    "prisma:generate": "cd Backend && pnpm prisma generate",
+    "prisma:studio": "cd Backend && pnpm prisma studio"
+  },
+  "keywords": [
+    "ecommerce",
+    "electronics",
+    "kenya"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

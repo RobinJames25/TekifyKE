@@ -13,65 +13,190 @@ datasource db {
   provider = "postgresql"
 }
 
+//
+// =============================
+//           MODELS
+// =============================
+//
+
+// ------------------------------
+// USER
+// ------------------------------
 model User {
-  id        Int      @id @default(autoincrement())
+  id        Int       @id @default(autoincrement())
   name      String
-  email     String   @unique
+  email     String    @unique
   password  String
   phone     String?
   address   String?
-  role      String   @default("customer")
+  role      UserRole  @default(CUSTOMER)
   orders    Order[]
-  createdAt DateTime @default(now())
+  cart      Cart?
+  payments  Payment[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([email])
 }
 
+enum UserRole {
+  CUSTOMER
+  ADMIN
+}
+
+// ------------------------------
+// CATEGORY
+// ------------------------------
 model Category {
-  id       Int       @id @default(autoincrement())
-  name     String
-  products Product[]
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  description String?
+  image       String?
+  products    Product[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
+// ------------------------------
+// PRODUCT
+// ------------------------------
 model Product {
-  id          Int        @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   name        String
   description String
   price       Float
-  stock       Int
-  image       String
-  categoryId  Int
-  category    Category   @relation(fields: [categoryId], references: [id])
-  createdAt   DateTime   @default(now())
-  orderItems  OrderItem[]
+  stock       Int      @default(0)
+  brand       String?
+  warranty    String?
+  images      String[] // multiple product images
+  isFeatured  Boolean  @default(false)
+  salesCount  Int      @default(0) // analytics optimization
+
+  categoryId Int
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  orderItems OrderItem[]
+  cartItems  CartItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([categoryId])
+  @@index([isFeatured])
 }
 
+// ------------------------------
+// ORDER
+// ------------------------------
 model Order {
-  id          Int         @id @default(autoincrement())
-  userId      Int
-  totalAmount Float
-  status      String       @default("Pending")
-  createdAt   DateTime     @default(now())
-  user        User         @relation(fields: [userId], references: [id])
-  items       OrderItem[]
+  id              Int           @id @default(autoincrement())
+  orderNumber     String        @unique @default(uuid())
+  userId          Int
+  totalAmount     Float
+  discount        Float         @default(0)
+  finalTotal      Float         @default(0)
+  shippingAddress String
+  shippingPhone   String
+  status          OrderStatus   @default(PENDING)
+  paymentStatus   PaymentStatus @default(PAYMENT_PENDING)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 
+  user     User        @relation(fields: [userId], references: [id])
+  items    OrderItem[]
   payments Payment[]
+
+  @@index([userId])
+  @@index([status])
 }
 
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPING
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PAYMENT_PENDING
+  PAID
+  FAILED
+}
+
+// ------------------------------
+// ORDER ITEM
+// ------------------------------
 model OrderItem {
-  id        Int      @id @default(autoincrement())
+  id        Int   @id @default(autoincrement())
   orderId   Int
   productId Int
   quantity  Int
-  price     Float
-  order     Order    @relation(fields: [orderId], references: [id])
-  product   Product  @relation(fields: [productId], references: [id])
+  price     Float // unit price × quantity at purchase time
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
 }
 
+// ------------------------------
+// PAYMENT (Improved + MPesa Ready)
+// ------------------------------
 model Payment {
-  id        Int      @id @default(autoincrement())
-  orderId   Int
-  method    String
-  status    String   @default("Pending")
-  mpesaCode String?
-  createdAt DateTime @default(now())
-  order     Order    @relation(fields: [orderId], references: [id])
+  id                Int            @id @default(autoincrement())
+  orderId           Int
+  userId            Int
+  amount            Float
+  method            PaymentMethod  @default(MPESA)
+  status            PaymentStatus2 @default(PENDING)
+  merchantReference String         @default("")
+  mpesaCode         String?        @unique
+  transactionId     String?
+  phone             String?
+  createdAt         DateTime       @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id])
+
+  @@index([orderId])
+}
+
+enum PaymentMethod {
+  MPESA
+  CASH
+}
+
+enum PaymentStatus2 {
+  PENDING
+  CONFIRMED
+  FAILED
+  CANCELLED
+}
+
+// ------------------------------
+// CART
+// ------------------------------
+model Cart {
+  id        Int        @id @default(autoincrement())
+  userId    Int        @unique
+  items     CartItem[]
+  createdAt DateTime   @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ------------------------------
+// CART ITEM
+// ------------------------------
+model CartItem {
+  id        Int @id @default(autoincrement())
+  cartId    Int
+  productId Int
+  quantity  Int @default(1)
+
+  cart    Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@unique([cartId, productId])
 }
