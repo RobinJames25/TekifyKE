@@ -1,0 +1,28 @@
+# Node
+node_modules/
+npm-debug.log
+pnpm-debug.log
+
+# Env
+.env
+
+# Prisma
+prisma/dev.db
+prisma/*.db
+prisma/*.sqlite
+
+# Logs
+logs/
+*.log
+
+# Build
+dist/
+coverage/
+
+# Editor
+.vscode/
+.qodo/
+.idea/
+.DS_Store
+
+/src/generated/prisma
