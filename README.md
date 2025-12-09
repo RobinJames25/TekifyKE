@@ -1,6 +1,6 @@
 # TekifyKE
 
-A full-stack electroni store platform built with Node.js, Express, Prisma, and React.
+A full-stack electronic store platform built with Node.js, Express, Prisma, and React.
 
 ## Project Structure
 

@@ -10,7 +10,50 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url = env("DATABASE_URL")
+}
+
+//
+// ENUMS
+//
+
+enum UserRole {
+  CUSTOMER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  DEACTIVATED
+  BANNED
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPING
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  MPESA
+  CASH
+  CARD
+}
+
+enum PaymentStatus {
+  UNPAID
+  PAID
+  REFUNDED
+  FAILED
+  CANCELLED
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 //
@@ -23,29 +66,149 @@ datasource db {
 // USER
 // ------------------------------
 model User {
-  id        Int       @id @default(autoincrement())
-  name      String
-  email     String    @unique
-  password  String
-  phone     String?
-  address   String?
-  role      UserRole  @default(CUSTOMER)
-  orders    Order[]
-  cart      Cart?
-  payments  Payment[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id       Int     @id @default(autoincrement())
+  name     String
+  email    String  @unique
+  password String
+  phone    String?
+  address  String?
+
+  emailVerified     Boolean   @default(false)
+  verificationToken String?
+  resetToken        String?
+  resetTokenExpiry  DateTime?
+  lastLogin         DateTime?
+  isActive          Boolean   @default(true)
+
+  status             UserStatus @default(ACTIVE)
+  lastPasswordChange DateTime?
+  twoFactorEnabled   Boolean    @default(false)
+  twoFactorSecret    String?
+
+  // New relations
+  loginAttempts LoginAttempt[]
+  sessions      Session[]
+  auditLogs     AuditLog[]
+
+  addresses Address[]
+
+  role     UserRole       @default(CUSTOMER)
+  orders   Order[]
+  cart     Cart?
+  wishlist WishlistItem[]
+  reviews  Review[]
+  payments Payment[]
+
+  avatar String? @default("default-avatar.png")
+
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
+  passwordResetTokens     PasswordResetToken[]
+  emailVerificationTokens EmailVerificationToken[]
 
   @@index([email])
 }
 
-enum UserRole {
-  CUSTOMER
-  ADMIN
+model Address {
+  id     String @id @default(cuid())
+  userId Int
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  fullName     String
+  phone        String
+  addressLine1 String
+  addressLine2 String?
+  city         String
+  country      String  @default("Kenya")
+  isDefault    Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model LoginAttempt {
+  id        Int      @id @default(autoincrement())
+  userId    Int?
+  user      User?    @relation(fields: [userId], references: [id])
+  email     String
+  ipAddress String?
+  userAgent String?
+  success   Boolean
+  createdAt DateTime @default(now())
+
+  @@index([email, createdAt])
+  @@index([ipAddress, createdAt])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  userId       Int
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessionToken String   @unique
+  refreshToken String   @unique
+  ipAddress    String?
+  userAgent    String?
+  deviceInfo   Json?
+  expiresAt    DateTime
+  lastUsedAt   DateTime @default(now())
+  isActive     Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, isActive])
+  @@index([sessionToken])
+}
+
+model AuditLog {
+  id         Int     @id @default(autoincrement())
+  userId     Int?
+  user       User?   @relation(fields: [userId], references: [id])
+  action     String // LOGIN, LOGOUT, REGISTER, PASSWORD_CHANGE, etc.
+  entityType String? // USER, ORDER, etc.
+  entityId   String?
+  oldData    Json?
+  newData    Json?
+  ipAddress  String?
+  userAgent  String?
+  metadata   Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([action, createdAt])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  ipAddress String?
+
+  createdAt DateTime @default(now())
+
+  @@index([token, used])
+  @@index([userId, createdAt])
+}
+
+model EmailVerificationToken {
+  id        String   @id @default(cuid())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([token, used])
 }
 
 // ------------------------------
-// CATEGORY
+// PRODUCT MODELS
 // ------------------------------
 model Category {
   id          Int       @id @default(autoincrement())
@@ -57,26 +220,25 @@ model Category {
   updatedAt   DateTime  @updatedAt
 }
 
-// ------------------------------
-// PRODUCT
-// ------------------------------
 model Product {
-  id          Int      @id @default(autoincrement())
-  name        String
-  description String
-  price       Float
-  stock       Int      @default(0)
-  brand       String?
-  warranty    String?
-  images      String[] // multiple product images
-  isFeatured  Boolean  @default(false)
-  salesCount  Int      @default(0) // analytics optimization
+  id                  Int      @id @default(autoincrement())
+  product_name        String
+  product_description String
+  product_price       Float
+  stock               Int      @default(0) //product_quantity
+  brand               String?
+  product_warranty    String?
+  product_images      String[] // multiple product images
+  isFeatured          Boolean  @default(false)
+  salesCount          Int      @default(0) // analytics optimization
 
   categoryId Int
   category   Category @relation(fields: [categoryId], references: [id])
 
   orderItems OrderItem[]
   cartItems  CartItem[]
+  reviews    Review[]
+  wishlist   WishlistItem[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -85,118 +247,160 @@ model Product {
   @@index([isFeatured])
 }
 
+model Review {
+  id        String  @id @default(cuid())
+  userId    Int
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId Int
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  rating  Int
+  comment String
+  status  ReviewStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 // ------------------------------
-// ORDER
+// ORDER MODELS
 // ------------------------------
 model Order {
-  id              Int           @id @default(autoincrement())
-  orderNumber     String        @unique @default(uuid())
-  userId          Int
-  totalAmount     Float
-  discount        Float         @default(0)
-  finalTotal      Float         @default(0)
+  id          Int    @id @default(autoincrement())
+  orderNumber String @unique @default(uuid())
+  userId      Int
+  user        User   @relation(fields: [userId], references: [id])
+
+  totalAmount Float
+  discount    Float @default(0)
+  shippingFee Float @default(0)
+  finalTotal  Float @default(0)
+
   shippingAddress String
   shippingPhone   String
-  status          OrderStatus   @default(PENDING)
-  paymentStatus   PaymentStatus @default(PAYMENT_PENDING)
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
 
-  user     User        @relation(fields: [userId], references: [id])
-  items    OrderItem[]
-  payments Payment[]
+  status        OrderStatus   @default(PENDING)
+  paymentStatus PaymentStatus @default(UNPAID)
+  payment_id    Int           @default(10)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items             OrderItem[]
+  payments          Payment[]
+  mpesaTransactions MpesaTransaction[]
 
   @@index([userId])
   @@index([status])
-}
-
-enum OrderStatus {
-  PENDING
-  PROCESSING
-  SHIPPING
-  DELIVERED
-  CANCELLED
-}
-
-enum PaymentStatus {
-  PAYMENT_PENDING
-  PAID
-  FAILED
 }
 
 // ------------------------------
 // ORDER ITEM
 // ------------------------------
 model OrderItem {
-  id        Int   @id @default(autoincrement())
-  orderId   Int
-  productId Int
-  quantity  Int
-  price     Float // unit price × quantity at purchase time
+  id      Int   @id @default(autoincrement())
+  orderId Int
+  order   Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
-  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id])
+  productId Int
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  productName String
+  quantity    Int
+  price       Float
+  total       Float // total price for this item (price × quantity)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([orderId])
 }
 
 // ------------------------------
-// PAYMENT (Improved + MPesa Ready)
+// PAYMENT MODELS
 // ------------------------------
 model Payment {
-  id                Int            @id @default(autoincrement())
-  orderId           Int
-  userId            Int
-  amount            Float
-  method            PaymentMethod  @default(MPESA)
-  status            PaymentStatus2 @default(PENDING)
-  merchantReference String         @default("")
-  mpesaCode         String?        @unique
-  transactionId     String?
-  phone             String?
-  createdAt         DateTime       @default(now())
+  payment_id Int   @id @default(autoincrement())
+  orderId    Int
+  order      Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
-  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  user  User  @relation(fields: [userId], references: [id])
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  amount        Float
+  paymentMethod PaymentMethod @default(MPESA)
+  paymentStatus PaymentStatus @default(UNPAID)
+
+  payment_confirmation_code  String? // mpesacode
+  transactionId              String?   @unique
+  payment_merchant_reference String    @default("")
+  paymentDate                DateTime?
+
+  createdAt DateTime @default(now())
 
   @@index([orderId])
 }
 
-enum PaymentMethod {
-  MPESA
-  CASH
-}
+model MpesaTransaction {
+  id      String @id @default(cuid())
+  orderId Int
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
-enum PaymentStatus2 {
-  PENDING
-  CONFIRMED
-  FAILED
-  CANCELLED
+  phoneNumber       String
+  amount            Float
+  transactionCode   String? @unique
+  merchantRequestID String?
+  checkoutRequestID String?
+
+  resultCode       String?
+  resultDesc       String?
+  callbackResponse Json?
+
+  status    String   @default("PENDING")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // ------------------------------
-// CART
+// CART MODELS
 // ------------------------------
 model Cart {
-  id        Int        @id @default(autoincrement())
-  userId    Int        @unique
+  id     Int  @id @default(autoincrement())
+  userId Int  @unique
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   items     CartItem[]
   createdAt DateTime   @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  updatedAt DateTime   @updatedAt
 }
 
-// ------------------------------
-// CART ITEM
-// ------------------------------
 model CartItem {
-  id        Int @id @default(autoincrement())
-  cartId    Int
-  productId Int
-  quantity  Int @default(1)
+  id     Int  @id @default(autoincrement())
+  cartId Int
+  cart   Cart @relation(fields: [cartId], references: [id], onDelete: Cascade)
 
-  cart    Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id])
+  productId Int // string if Product id is String
+  product   Product @relation(fields: [productId], references: [id])
+
+  quantity Int   @default(1)
+  price    Float // unit price at the time of adding to cart
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([cartId, productId])
+}
+
+model WishlistItem {
+  id     String @id @default(cuid())
+  userId Int
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, productId])
 }
