@@ -1,0 +1,255 @@
+TekifyKE - Complete Project Structure
+=====================================
+
+TekifyKE/
+│
+├── 📁 src/                                    # Source directory (all app code)
+│   │
+│   ├── 🔒 middleware.ts                       # Clerk auth + role-based routing
+│   │
+│   ├── 📁 app/                                # Next.js 16 App Router
+│   │   ├── 🎨 globals.css                     # Dark-mode design system
+│   │   ├── 📄 layout.tsx                      # Root layout (ClerkProvider)
+│   │   │
+│   │   └── 📁 (main)/                         # Main route group
+│   │       ├── 📄 layout.tsx                  # Layout with Navbar & Footer
+│   │       ├── 🏠 page.tsx                    # Landing page
+│   │       ├── ⏳ loading.tsx                 # Skeleton loading UI
+│   │       └── ❌ error.tsx                   # Error boundary
+│   │
+│   ├── 📁 components/                         # React components
+│   │   │
+│   │   ├── 📁 layout/                         # Layout components
+│   │   │   ├── 🧭 navbar.tsx                  # Navigation bar (cart count)
+│   │   │   └── 👣 footer.tsx                  # Footer (links, contact)
+│   │   │
+│   │   └── 📁 ui/                             # Base UI components
+│   │       ├── 🔘 button.tsx                  # Button (5 variants)
+│   │       └── 🃏 card.tsx                    # Card (modular sections)
+│   │
+│   └── 📁 lib/                                # Utilities & configs
+│       ├── 🗄️ prisma.ts                       # Prisma client singleton
+│       ├── 🛠️ utils.ts                        # Helper functions
+│       │
+│       └── 📁 store/                          # State management
+│           └── 🛒 cart-store.ts               # Zustand cart store
+│
+├── 📁 prisma/                                 # Database layer
+│   ├── 📊 schema.prisma                       # Database models
+│   ├── 🌱 seed.ts                             # Sample data (15+ products)
+│   └── ⚙️ prisma.config.ts                    # Neon Postgres config
+│
+├── 📁 Backend/                                # ⚠️ Legacy (can be removed)
+├── 📁 Frontend/                               # ⚠️ Legacy (can be removed)
+│
+├── 📁 node_modules/                           # Dependencies (506 packages)
+│
+├── 📄 .env                                    # Environment variables (gitignored)
+├── 📄 .env.example                            # Env template
+├── 📄 .gitignore                              # Git ignore rules
+├── 📄 next.config.ts                          # Next.js config
+├── 📄 tailwind.config.ts                      # Tailwind config
+├── 📄 tsconfig.json                           # TypeScript config
+├── 📄 postcss.config.mjs                      # PostCSS config
+├── 📄 package.json                            # Dependencies & scripts
+├── 📄 pnpm-lock.yaml                          # Lock file
+├── 📄 README.md                               # Project readme
+├── 📄 PROJECT_STRUCTURE.md                    # Detailed documentation
+└── 📄 FOLDER_TREE.txt                         # This file
+
+
+KEY FEATURES BY DIRECTORY
+==========================
+
+📁 src/app/
+  ✅ Server Components by default
+  ✅ Async params/searchParams (Next.js 16)
+  ✅ Loading & error states
+  ✅ SEO-optimized metadata
+
+📁 src/components/
+  ✅ Reusable UI components
+  ✅ Shadcn/ui style patterns
+  ✅ TypeScript strict mode
+  ✅ Responsive design
+
+📁 src/lib/
+  ✅ Prisma client with singleton
+  ✅ Zustand cart with persistence
+  ✅ Utility functions (formatPrice, cn, etc.)
+
+📁 prisma/
+  ✅ Complete schema (5 models)
+  ✅ Realistic seed data
+  ✅ Neon Serverless Postgres
+  ✅ Connection pooling
+
+
+DATABASE MODELS
+===============
+
+User
+  - id, email, name, role (ADMIN/CUSTOMER)
+  - clerkId (Clerk integration)
+  - orders (relation)
+
+Product
+  - id, name, slug, description
+  - price, stock, images[]
+  - attributes (JSON for specs)
+  - featured, categoryId
+  - category, orderItems (relations)
+
+Category
+  - id, name, slug
+  - description, image
+  - products (relation)
+
+Order
+  - id, userId, totalAmount
+  - status (PENDING/PAID/SHIPPED/DELIVERED)
+  - paymentMethod (PAYPAL/KCB_BUNI)
+  - phoneNumber, transactionReference
+  - shippingAddress (JSON)
+  - user, orderItems (relations)
+
+OrderItem
+  - id, orderId, productId
+  - quantity, price
+  - order, product (relations)
+
+
+TECH STACK
+==========
+
+Frontend:
+  ⚛️  React 19
+  ▲  Next.js 16 (App Router)
+  📘 TypeScript 5.7
+  🎨 Tailwind CSS 3.4
+  🎭 Shadcn/ui patterns
+
+Backend:
+  🗄️  Prisma 7 (ORM)
+  🐘 Neon Postgres (Serverless)
+  🔐 Clerk (Authentication)
+
+State:
+  🐻 Zustand (Cart management)
+
+Payments:
+  💳 PayPal SDK
+  📱 KCB Buni API (M-Pesa)
+
+Icons:
+  ✨ Lucide React
+
+Carousel:
+  🎠 Embla Carousel
+
+
+COMPLETED FEATURES
+==================
+
+✅ Project initialization
+✅ TypeScript configuration
+✅ Tailwind CSS setup
+✅ Prisma schema (5 models)
+✅ Database seed script
+✅ Clerk authentication
+✅ Role-based middleware
+✅ Global layout & styles
+✅ Responsive navbar
+✅ Professional footer
+✅ Cart state management
+✅ Landing page
+✅ Loading states
+✅ Error boundaries
+✅ Button component
+✅ Card component
+
+
+PENDING FEATURES
+================
+
+⏳ Products listing page
+⏳ Product detail page
+⏳ Shopping cart page
+⏳ Checkout flow
+⏳ PayPal integration
+⏳ KCB Buni integration
+⏳ Admin dashboard
+⏳ Product CRUD
+⏳ Order management
+⏳ User profile
+⏳ Order tracking
+
+
+SCRIPTS
+=======
+
+Development:
+  pnpm dev              # Start dev server (localhost:3000)
+  pnpm build            # Build for production
+  pnpm start            # Start production server
+  pnpm lint             # Run ESLint
+
+Database:
+  pnpm prisma:generate  # Generate Prisma client
+  pnpm prisma:migrate   # Run migrations
+  pnpm prisma:studio    # Open Prisma Studio GUI
+  pnpm prisma:seed      # Seed database
+
+
+ENVIRONMENT VARIABLES
+=====================
+
+Required in .env:
+
+# Database
+DATABASE_URL="postgresql://..."
+DIRECT_URL="postgresql://..."
+
+# Clerk
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_test_..."
+CLERK_SECRET_KEY="sk_test_..."
+
+# PayPal
+PAYPAL_CLIENT_ID="..."
+PAYPAL_CLIENT_SECRET="..."
+NEXT_PUBLIC_PAYPAL_CLIENT_ID="..."
+
+# KCB Buni
+KCB_BUNI_CLIENT_ID="..."
+KCB_BUNI_CLIENT_SECRET="..."
+KCB_BUNI_API_KEY="..."
+KCB_BUNI_BASE_URL="https://uat.buni.kcbgroup.com"
+
+# App
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+
+
+FILE SIZES
+==========
+
+Total Files: ~30
+Total Lines: ~2,500+
+Dependencies: 506 packages
+Bundle Size: TBD (after build)
+
+
+NOTES
+=====
+
+1. All code follows Next.js 16 best practices
+2. React 19 Server Components used by default
+3. TypeScript strict mode enabled
+4. Dark-mode-first design
+5. Mobile-responsive
+6. SEO-optimized
+7. Production-ready foundation
+8. Kenyan market focused (KES pricing, Nairobi delivery)
+
+---
+Generated: 2026-06-08
+Version: 1.0.0
