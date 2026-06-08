@@ -272,13 +272,56 @@ export default async function OrderPage({ params, searchParams }: OrderPageProps
           <Card className="p-6">
             <h3 className="text-xl font-bold mb-4">Shipping Information</h3>
             <div className="space-y-2 text-sm">
-              <p>
-                <span className="text-gray-400">Phone:</span>{' '}
-                <span className="font-medium">{order.phoneNumber}</span>
-              </p>
-              <p className="text-gray-400 mt-4">
-                Delivery address and additional details will be confirmed via phone call.
-              </p>
+              {order.shippingAddress && typeof order.shippingAddress === 'object' && (
+                <>
+                  <p>
+                    <span className="text-gray-400">Name:</span>{' '}
+                    <span className="font-medium">
+                      {(order.shippingAddress as any).fullName}
+                    </span>
+                  </p>
+                  <p>
+                    <span className="text-gray-400">Email:</span>{' '}
+                    <span className="font-medium">
+                      {(order.shippingAddress as any).email}
+                    </span>
+                  </p>
+                  <p>
+                    <span className="text-gray-400">Phone:</span>{' '}
+                    <span className="font-medium">
+                      {(order.shippingAddress as any).phone}
+                    </span>
+                  </p>
+                  <p>
+                    <span className="text-gray-400">Address:</span>{' '}
+                    <span className="font-medium">
+                      {(order.shippingAddress as any).address}
+                    </span>
+                  </p>
+                  <p>
+                    <span className="text-gray-400">City:</span>{' '}
+                    <span className="font-medium">
+                      {(order.shippingAddress as any).city}, {(order.shippingAddress as any).county}
+                    </span>
+                  </p>
+                  {(order.shippingAddress as any).postalCode && (
+                    <p>
+                      <span className="text-gray-400">Postal Code:</span>{' '}
+                      <span className="font-medium">
+                        {(order.shippingAddress as any).postalCode}
+                      </span>
+                    </p>
+                  )}
+                  {(order.shippingAddress as any).additionalInfo && (
+                    <p>
+                      <span className="text-gray-400">Additional Info:</span>{' '}
+                      <span className="font-medium">
+                        {(order.shippingAddress as any).additionalInfo}
+                      </span>
+                    </p>
+                  )}
+                </>
+              )}
             </div>
           </Card>
         </div>
