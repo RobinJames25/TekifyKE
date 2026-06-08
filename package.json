@@ -4,22 +4,55 @@
   "description": "TekifyKE - Electronics E-commerce Platform",
   "private": true,
   "scripts": {
-    "dev": "concurrently -n \"Backend,Frontend\" -c \"blue,green\" \"pnpm run dev:backend\" \"pnpm run dev:frontend\"",
-    "dev:backend": "cd Backend && pnpm run dev",
-    "dev:frontend": "cd Frontend && pnpm run dev",
-    "install:all": "pnpm install && cd Backend && pnpm install && cd ../Frontend && pnpm install",
-    "prisma:migrate": "cd Backend && pnpm prisma migrate dev",
-    "prisma:generate": "cd Backend && pnpm prisma generate",
-    "prisma:studio": "cd Backend && pnpm prisma studio"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "prisma:generate": "npx prisma generate",
+    "prisma:migrate": "npx prisma migrate dev",
+    "prisma:studio": "npx prisma studio",
+    "prisma:seed": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@clerk/nextjs": "^6.9.0",
+    "@paypal/checkout-server-sdk": "^1.0.3",
+    "@paypal/react-paypal-js": "^10.0.0",
+    "@prisma/client": "^7.0.0",
+    "axios": "^1.7.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
+    "embla-carousel-react": "^8.5.1",
+    "lucide-react": "^0.468.0",
+    "next": "^16.2.7",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "sharp": "^0.33.5",
+    "tailwind-merge": "^2.6.1",
+    "zod": "^3.24.1",
+    "zustand": "^5.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/react": "^19.0.1",
+    "@types/react-dom": "^19.0.2",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^9.17.0",
+    "eslint-config-next": "^16.2.7",
+    "postcss": "^8.4.49",
+    "prisma": "^7.0.0",
+    "tailwindcss": "^3.4.17",
+    "tailwindcss-animate": "^1.0.7",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
   },
   "keywords": [
     "ecommerce",
     "electronics",
-    "kenya"
+    "kenya",
+    "nextjs",
+    "react"
   ],
-  "author": "",
-  "license": "MIT",
-  "devDependencies": {
-    "concurrently": "^8.2.2"
-  }
+  "author": "Oyugi",
+  "license": "MIT"
 }
